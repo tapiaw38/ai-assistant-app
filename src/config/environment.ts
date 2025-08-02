@@ -34,7 +34,8 @@ export const ENV: EnvironmentConfig = {
 
 // Validation function
 export const validateEnvironment = (): boolean => {
-  const requiredVars = ['API_KEY', 'API_BASE_URL'];
+  // Only API_BASE_URL is required now, API_KEY is handled by auth system
+  const requiredVars = ['API_BASE_URL'];
   const missing: string[] = [];
 
   requiredVars.forEach((varName) => {

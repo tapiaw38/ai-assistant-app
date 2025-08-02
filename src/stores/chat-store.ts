@@ -28,6 +28,7 @@ export const useChatStore = defineStore('chat', () => {
   const error = ref<string | null>(null);
   const showImages = ref(false);
   const audioAnswers = ref(false);
+  const isPlayingAudio = ref(false);
 
   // API Configuration
   const apiKey = ref('');
@@ -173,6 +174,27 @@ export const useChatStore = defineStore('chat', () => {
 
   const toggleAudioAnswers = () => {
     audioAnswers.value = !audioAnswers.value;
+  };
+
+  const startNewConversation = async () => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      console.log('🆕 Starting new conversation...');
+
+      // Clear current messages
+      messages.value = [];
+
+      // Create new conversation
+      await createNewConversation();
+
+      console.log('✅ New conversation started with ID:', conversationId.value);
+    } catch (err) {
+      error.value = 'Error starting new conversation';
+      console.error('❌ Error starting new conversation:', err);
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   // API Functions (copied from ai-assistant-package)
@@ -448,6 +470,7 @@ export const useChatStore = defineStore('chat', () => {
     error,
     showImages,
     audioAnswers,
+    isPlayingAudio,
 
     // Computed
     hasMessages,
@@ -459,5 +482,6 @@ export const useChatStore = defineStore('chat', () => {
     clearMessages,
     toggleShowImages,
     toggleAudioAnswers,
+    startNewConversation,
   };
 });

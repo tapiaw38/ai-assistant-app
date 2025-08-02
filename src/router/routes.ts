@@ -9,6 +9,10 @@ const routes: RouteRecordRaw[] = [
         path: '',
         component: () => import('pages/ChatPage.vue'),
       },
+      {
+        path: '/settings',
+        component: () => import('pages/SettingsPage.vue'),
+      },
     ],
   },
   // Always leave this as last one,
