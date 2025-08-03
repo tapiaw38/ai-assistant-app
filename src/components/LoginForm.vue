@@ -85,24 +85,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from 'src/composables/useAuth';
 import nymiaLogo from 'src/assets/nymia-app.png';
 import { ENV } from 'src/config/environment';
 
-// Composables
 const auth = useAuth();
 const router = useRouter();
 
-// Reactive data
 const apiKeyInput = ref('');
 const serverUrl = ref(ENV.API_BASE_URL || 'https://assistant.nymia.com.ar');
 const showApiKey = ref(false);
 
-// Computed (removed unused inputType)
-
-// Methods
 const toggleApiKeyVisibility = () => {
   showApiKey.value = !showApiKey.value;
 };
@@ -110,27 +105,19 @@ const toggleApiKeyVisibility = () => {
 const handleLogin = async () => {
   const success = await auth.login(apiKeyInput.value.trim(), serverUrl.value.trim());
   if (success) {
-    // Login successful - redirect to chat
-    console.log('Login successful');
-    // Clear the form
     apiKeyInput.value = '';
-    // Redirect to chat page
     void router.push('/');
   } else {
-    // Error is handled by the auth composable
     console.log('Login failed');
   }
 };
 
-// Clear error when user starts typing
 const clearErrorOnInput = () => {
   if (auth.error.value) {
     auth.clearError();
   }
 };
 
-// Watch for input changes to clear errors
-import { watch } from 'vue';
 watch([apiKeyInput, serverUrl], clearErrorOnInput);
 </script>
 

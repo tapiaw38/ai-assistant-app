@@ -191,16 +191,13 @@ import { useBackButton } from 'src/composables/useBackButton';
 import { ENV } from 'src/config/environment';
 import { useQuasar } from 'quasar';
 
-// Composables
 const auth = useAuth();
 const chatStore = useChatStore();
 const router = useRouter();
 const $q = useQuasar();
 
-// Setup back button handler
 useBackButton();
 
-// Reactive data
 const newApiKey = ref('');
 const serverUrl = ref(ENV.API_BASE_URL || 'https://assistant.nymia.com.ar');
 const showCurrentKey = ref(false);
@@ -209,14 +206,12 @@ const isUpdating = ref(false);
 const error = ref<string | null>(null);
 const showLogoutDialog = ref(false);
 
-// Computed
 const maskedApiKey = computed(() => {
   if (!auth.apiKey.value) return '';
   const key = auth.apiKey.value;
   return key.substring(0, 10) + '...' + key.substring(key.length - 10);
 });
 
-// Methods
 const updateApiKey = async () => {
   try {
     isUpdating.value = true;
@@ -254,7 +249,6 @@ const handleLogout = () => {
     message: 'Logged out successfully',
     position: 'top',
   });
-  // Navigate to login page
   void router.push('/login');
 };
 </script>

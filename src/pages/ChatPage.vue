@@ -206,20 +206,16 @@ import { useBackButton } from 'src/composables/useBackButton';
 import { ENV } from 'src/config/environment';
 import VoiceRecorderButton from 'src/components/VoiceRecorderButton.vue';
 
-// Composables
 const chatStore = useChatStore();
 const auth = useAuth();
 const router = useRouter();
 
-// Setup back button handler
 useBackButton();
 
-// Reactive data
 const messageText = ref('');
 const showMenu = ref(false);
 const messagesContainer = ref<HTMLElement>();
 
-// Methods
 const sendMessage = async () => {
   if (!messageText.value.trim() || chatStore.isSending) return;
 
@@ -233,7 +229,6 @@ const sendMessage = async () => {
 const handleVoiceMessage = async (audioBlob: Blob) => {
   if (chatStore.isSending) return;
 
-  // Create FormData with the audio blob
   const formData = new FormData();
   formData.append('voice_content', audioBlob, 'voice_message.wav');
   formData.append('content', '[Voice Message]');
@@ -266,13 +261,14 @@ const retryInitialization = async () => {
 
 const scrollToBottom = async () => {
   await nextTick();
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-  }
+  setTimeout(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+    }
+  }, 1000);
 };
 
 const formatMessage = (content: string): string => {
-  // Simple formatting - you can enhance this
   return content
     .replace(/\n/g, '<br>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -287,11 +283,10 @@ const handleLogout = () => {
   auth.logout();
   chatStore.resetStore();
   showMenu.value = false;
-  // Redirect to login page
+
   void router.push('/login');
 };
 
-// Watchers
 watch(
   () => chatStore.messages,
   () => {
@@ -300,31 +295,27 @@ watch(
   { deep: true },
 );
 
-// Lifecycle
 onMounted(async () => {
-  // Initialize authentication
   auth.initializeAuth();
 
-  // If not authenticated, redirect to login
   if (!auth.isAuthenticated.value) {
     void router.push('/login');
     return;
   }
 
-  // Initialize chat if authenticated
   if (auth.isAuthenticated.value && auth.apiKey.value) {
     await chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
+    await scrollToBottom();
   }
 });
 
-// Watch for authentication changes
 watch(
   () => auth.isAuthenticated.value,
-  (isAuthenticated) => {
+  async (isAuthenticated) => {
     if (isAuthenticated && auth.apiKey.value) {
-      void chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
+      await chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
+      await scrollToBottom();
     } else {
-      // User logged out - redirect to login
       void router.push('/login');
     }
   },
@@ -333,7 +324,7 @@ watch(
 
 <style scoped>
 .chat-page {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #f5f5f5;

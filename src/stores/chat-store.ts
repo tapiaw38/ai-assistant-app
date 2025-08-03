@@ -20,7 +20,6 @@ export interface ChatState {
 }
 
 export const useChatStore = defineStore('chat', () => {
-  // State
   const messages = ref<Message[]>([]);
   const conversationId = ref<string | null>(null);
   const isLoading = ref(false);
@@ -30,15 +29,12 @@ export const useChatStore = defineStore('chat', () => {
   const audioAnswers = ref(false);
   const isPlayingAudio = ref(false);
 
-  // API Configuration
   const apiKey = ref('');
   const apiBaseUrl = ref('');
 
-  // Computed
   const hasMessages = computed(() => messages.value.length > 0);
   const lastMessage = computed(() => messages.value[messages.value.length - 1]);
 
-  // Actions
   const initializeChat = async (key: string, baseUrl: string) => {
     apiKey.value = key;
     apiBaseUrl.value = baseUrl;
@@ -47,19 +43,15 @@ export const useChatStore = defineStore('chat', () => {
       isLoading.value = true;
       error.value = null;
 
-      // Get client_id from localStorage
       const storedClientId = localStorage.getItem('ai-client-id');
 
-      // Fetch all conversations
       const conversations = await fetchAllConversations();
 
       if (conversations.length > 0) {
         const firstConv = conversations[0];
         conversationId.value = firstConv.id;
 
-        // If the client_id matches, use this conversation
         if (storedClientId && storedClientId === firstConv.client_id) {
-          // Load messages for this conversation
           const conversationMessages = await fetchMessages(firstConv.id);
           messages.value = (conversationMessages || []).map(
             (msg: {
@@ -77,40 +69,30 @@ export const useChatStore = defineStore('chat', () => {
             }),
           );
         } else {
-          // Create new conversation
           await createNewConversation();
         }
       } else {
-        // Create new conversation
         await createNewConversation();
       }
     } catch (err) {
+      console.log(err);
       error.value = 'Error initializing chat';
-      console.error('Error initializing chat:', err);
     } finally {
       isLoading.value = false;
     }
   };
 
   const sendMessage = async (content: string | FormData) => {
-    console.log(
-      '🚀 sendMessage called with:',
-      typeof content === 'string' ? content : 'FormData (audio)',
-    );
-    console.log('📋 conversationId:', conversationId.value);
-
     if (!conversationId.value) {
+      console.error('No active conversation');
       error.value = 'No active conversation';
-      console.error('❌ No active conversation');
       return;
     }
 
     try {
       isSending.value = true;
       error.value = null;
-      console.log('📤 Starting to send message...');
 
-      // Add user message to state
       const userMessage: Message = {
         id: Date.now().toString(),
         content: typeof content === 'string' ? content : '[Voice Message]',
@@ -118,17 +100,12 @@ export const useChatStore = defineStore('chat', () => {
         timestamp: new Date(),
       };
       messages.value.push(userMessage);
-      console.log('✅ User message added to state');
 
-      // Send to API
-      console.log('🌐 Calling API...');
       const response =
         typeof content === 'string'
           ? await sendMessageToApi(content)
           : await sendFormDataToApi(content);
-      console.log('📥 API response received:', response);
 
-      // Parse response if it's JSON (audio response)
       let messageContent = response;
       let audioUrl: string | undefined;
 
@@ -137,14 +114,11 @@ export const useChatStore = defineStore('chat', () => {
         if (parsedResponse.content && parsedResponse.audio_url) {
           messageContent = parsedResponse.content;
           audioUrl = parsedResponse.audio_url;
-          console.log('🎵 Audio response detected:', audioUrl);
         }
       } catch {
-        // Not JSON, use as is
-        console.log('📝 Text response detected');
+        console.log('Text response detected');
       }
 
-      // Add assistant response
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: messageContent,
@@ -153,13 +127,11 @@ export const useChatStore = defineStore('chat', () => {
         audioUrl: audioUrl,
       };
       messages.value.push(assistantMessage);
-      console.log('✅ Assistant message added to state');
     } catch (err) {
       error.value = 'Error sending message';
-      console.error('❌ Error sending message:', err);
+      console.error('Error sending message:', err);
     } finally {
       isSending.value = false;
-      console.log('🏁 sendMessage completed');
     }
   };
 
@@ -194,30 +166,25 @@ export const useChatStore = defineStore('chat', () => {
       error.value = null;
       console.log('🆕 Starting new conversation...');
 
-      // Clear current messages
       messages.value = [];
 
-      // Create new conversation
       await createNewConversation();
 
-      console.log('✅ New conversation started with ID:', conversationId.value);
+      console.log('New conversation started with ID:', conversationId.value);
     } catch (err) {
       error.value = 'Error starting new conversation';
-      console.error('❌ Error starting new conversation:', err);
+      console.error('Error starting new conversation:', err);
     } finally {
       isLoading.value = false;
     }
   };
 
-  // API Functions (copied from ai-assistant-package)
   const fetchAllConversations = async () => {
     try {
       // Ensure URL has protocol
       const baseUrl = apiBaseUrl.value.startsWith('http')
         ? apiBaseUrl.value
         : `http://${apiBaseUrl.value}`;
-
-      console.log('🔗 Fetching conversations from:', `${baseUrl}/conversation/user`);
 
       const response = await fetch(`${baseUrl}/conversation/user`, {
         method: 'GET',
@@ -229,34 +196,28 @@ export const useChatStore = defineStore('chat', () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
+        console.error('API Error:', response.status, errorText);
         throw new Error(`Error fetching conversations: ${response.status} - ${errorText}`);
       }
 
       const responseText = await response.text();
-      console.log('📥 Raw response:', responseText);
-
       if (!responseText) {
-        console.warn('⚠️ Empty response from API');
         return [];
       }
 
       const data = JSON.parse(responseText);
       return data.data || [];
     } catch (error) {
-      console.error('❌ Error fetching conversations:', error);
+      console.error('Error fetching conversations:', error);
       return [];
     }
   };
 
   const fetchMessages = async (convId: string) => {
     try {
-      // Ensure URL has protocol
       const baseUrl = apiBaseUrl.value.startsWith('http')
         ? apiBaseUrl.value
         : `http://${apiBaseUrl.value}`;
-
-      console.log('🔗 Fetching messages from:', `${baseUrl}/conversation/${convId}`);
 
       const response = await fetch(`${baseUrl}/conversation/${convId}`, {
         method: 'GET',
@@ -268,34 +229,29 @@ export const useChatStore = defineStore('chat', () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
+        console.error('API Error:', response.status, errorText);
         throw new Error(`Error fetching messages: ${response.status} - ${errorText}`);
       }
 
       const responseText = await response.text();
-      console.log('📥 Raw response:', responseText);
-
       if (!responseText) {
-        console.warn('⚠️ Empty response from API');
+        console.warn('Empty response from API');
         return [];
       }
 
       const data = JSON.parse(responseText);
       return data.data.messages || [];
     } catch (error) {
-      console.error('❌ Error fetching messages:', error);
+      console.error('Error fetching messages:', error);
       return [];
     }
   };
 
   const createNewConversation = async () => {
     try {
-      // Ensure URL has protocol
       const baseUrl = apiBaseUrl.value.startsWith('http')
         ? apiBaseUrl.value
         : `http://${apiBaseUrl.value}`;
-
-      console.log('🔗 Creating conversation at:', `${baseUrl}/conversation/`);
 
       const response = await fetch(`${baseUrl}/conversation/`, {
         method: 'POST',
@@ -308,13 +264,11 @@ export const useChatStore = defineStore('chat', () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
+        console.error('API Error:', response.status, errorText);
         throw new Error(`Error creating conversation: ${response.status} - ${errorText}`);
       }
 
       const responseText = await response.text();
-      console.log('📥 Raw response:', responseText);
-
       if (!responseText) {
         throw new Error('Empty response from API');
       }
@@ -322,12 +276,11 @@ export const useChatStore = defineStore('chat', () => {
       const data = JSON.parse(responseText);
       conversationId.value = data.data.id;
 
-      // Store client_id in localStorage
       if (data.data.client_id) {
         localStorage.setItem('ai-client-id', data.data.client_id);
       }
     } catch (error) {
-      console.error('❌ Error creating conversation:', error);
+      console.error('Error creating conversation:', error);
       throw error;
     }
   };
@@ -338,7 +291,6 @@ export const useChatStore = defineStore('chat', () => {
     const imageProcessorParam = showImages.value ? 'activate' : 'deactivate';
     const textToVoiceParam = audioAnswers.value ? 'activate' : 'deactivate';
 
-    // Ensure URL has protocol
     const baseUrl = apiBaseUrl.value.startsWith('http')
       ? apiBaseUrl.value
       : `http://${apiBaseUrl.value}`;
@@ -363,13 +315,11 @@ export const useChatStore = defineStore('chat', () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
+        console.error('API Error:', response.status, errorText);
         throw new Error(`Error sending message: ${response.status} - ${errorText}`);
       }
 
       const responseText = await response.text();
-      console.log('📥 Raw response:', responseText);
-
       if (!responseText) {
         throw new Error('Empty response from API');
       }
@@ -395,7 +345,7 @@ export const useChatStore = defineStore('chat', () => {
 
       return 'No response from the assistant.';
     } catch (error) {
-      console.error('❌ Error sending message:', error);
+      console.error('Error sending message:', error);
       return 'Sorry, there was an error processing your message. Please try again.';
     }
   };
@@ -406,7 +356,6 @@ export const useChatStore = defineStore('chat', () => {
     const imageProcessorParam = showImages.value ? 'activate' : 'deactivate';
     const textToVoiceParam = audioAnswers.value ? 'activate' : 'deactivate';
 
-    // Ensure URL has protocol
     const baseUrl = apiBaseUrl.value.startsWith('http')
       ? apiBaseUrl.value
       : `http://${apiBaseUrl.value}`;
@@ -427,13 +376,11 @@ export const useChatStore = defineStore('chat', () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
+        console.error('API Error:', response.status, errorText);
         throw new Error(`Error sending FormData: ${response.status} - ${errorText}`);
       }
 
       const responseText = await response.text();
-      console.log('📥 Raw response:', responseText);
-
       if (!responseText) {
         throw new Error('Empty response from API');
       }
@@ -459,13 +406,12 @@ export const useChatStore = defineStore('chat', () => {
 
       return 'No response from the assistant.';
     } catch (error) {
-      console.error('❌ Error sending FormData:', error);
+      console.error('Error sending FormData:', error);
       return 'Sorry, there was an error processing your audio message. Please try again.';
     }
   };
 
   const processHtmlContent = (content: string): string => {
-    // Simple HTML processing - you can enhance this as needed
     return content
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')

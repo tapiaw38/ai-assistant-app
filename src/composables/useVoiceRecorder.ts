@@ -19,12 +19,10 @@ export function useVoiceRecorder() {
 
   let recordingTimer: NodeJS.Timeout | null = null;
 
-  // Check if voice recording is available
   const isVoiceRecordingAvailable = () => {
     return Capacitor.isNativePlatform();
   };
 
-  // Request permissions
   const requestPermissions = async (): Promise<boolean> => {
     try {
       const result = await VoiceRecorder.requestAudioRecordingPermission();
@@ -36,31 +34,26 @@ export function useVoiceRecorder() {
     }
   };
 
-  // Start recording
   const startRecording = async (): Promise<boolean> => {
     try {
       state.value.isLoading = true;
       state.value.error = null;
 
-      // Check if native platform
       if (!isVoiceRecordingAvailable()) {
         state.value.error = 'Voice recording is only available on mobile devices';
         return false;
       }
 
-      // Request permissions
       const hasPermission = await requestPermissions();
       if (!hasPermission) {
         state.value.error = 'Recording permission denied';
         return false;
       }
 
-      // Start recording
       await VoiceRecorder.startRecording();
       state.value.isRecording = true;
       state.value.recordingDuration = 0;
 
-      // Start timer
       recordingTimer = setInterval(() => {
         state.value.recordingDuration += 1;
       }, 1000);
@@ -75,7 +68,6 @@ export function useVoiceRecorder() {
     }
   };
 
-  // Stop recording
   const stopRecording = async (): Promise<Blob | null> => {
     try {
       state.value.isLoading = true;
@@ -85,19 +77,16 @@ export function useVoiceRecorder() {
         return null;
       }
 
-      // Stop timer
       if (recordingTimer) {
         clearInterval(recordingTimer);
         recordingTimer = null;
       }
 
-      // Stop recording
       const result = await VoiceRecorder.stopRecording();
       state.value.isRecording = false;
       state.value.recordingDuration = 0;
 
       if (result.value && result.value.recordDataBase64) {
-        // Convert base64 to blob
         const base64Data = result.value.recordDataBase64;
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
@@ -122,11 +111,9 @@ export function useVoiceRecorder() {
     }
   };
 
-  // Cancel recording
   const cancelRecording = async (): Promise<void> => {
     try {
       if (state.value.isRecording) {
-        // Stop timer
         if (recordingTimer) {
           clearInterval(recordingTimer);
           recordingTimer = null;
@@ -141,7 +128,6 @@ export function useVoiceRecorder() {
     }
   };
 
-  // Format duration
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

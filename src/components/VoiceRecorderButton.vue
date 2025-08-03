@@ -71,7 +71,6 @@
 <script setup lang="ts">
 import { useVoiceRecorder } from 'src/composables/useVoiceRecorder';
 
-// Props
 interface Props {
   disabled?: boolean;
 }
@@ -80,17 +79,14 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
 
-// Emits
 interface Emits {
   (e: 'voice-recorded', audioBlob: Blob): void;
 }
 
 const emit = defineEmits<Emits>();
 
-// Composables
 const voiceRecorder = useVoiceRecorder();
 
-// Methods
 const startRecording = async () => {
   if (props.disabled) return;
 

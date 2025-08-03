@@ -14,25 +14,20 @@ import LoginForm from 'src/components/LoginForm.vue';
 const auth = useAuth();
 const router = useRouter();
 
-// Setup back button handler to exit app
 useBackButton();
 
-// Initialize auth on mount
 onMounted(() => {
   auth.initializeAuth();
 
-  // If already authenticated, redirect to chat
   if (auth.isAuthenticated.value) {
     void router.push('/');
   }
 });
 
-// Watch for authentication changes
 watch(
   () => auth.isAuthenticated.value,
   (isAuthenticated) => {
     if (isAuthenticated) {
-      // Redirect to chat when successfully authenticated
       void router.push('/');
     }
   },
