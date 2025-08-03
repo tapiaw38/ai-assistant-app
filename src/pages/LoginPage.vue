@@ -8,10 +8,14 @@
 import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from 'src/composables/useAuth';
+import { useBackButton } from 'src/composables/useBackButton';
 import LoginForm from 'src/components/LoginForm.vue';
 
 const auth = useAuth();
 const router = useRouter();
+
+// Setup back button handler to exit app
+useBackButton();
 
 // Initialize auth on mount
 onMounted(() => {

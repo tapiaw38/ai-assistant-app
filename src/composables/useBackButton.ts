@@ -12,6 +12,13 @@ export function useBackButton() {
   const handleBackButton = async () => {
     const currentRoute = router.currentRoute.value;
 
+    // Si estamos en la página de login, salir directamente de la app
+    if (currentRoute.path === '/login') {
+      console.log('🔙 Back button pressed in login, exiting app');
+      void App.exitApp();
+      return;
+    }
+
     // Si estamos en la página de configuraciones, volver al chat
     if (currentRoute.path === '/settings') {
       console.log('🔙 Back button pressed in settings, navigating to chat');
