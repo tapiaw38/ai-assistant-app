@@ -9,6 +9,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
 
 # Quasar core related directories
 .quasar/
@@ -55,6 +58,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+.editorconfig
 
 # TypeScript
 *.tsbuildinfo
@@ -80,6 +84,7 @@ pids
 
 # Optional npm cache directory
 .npm
+.npmrc
 
 # Optional REPL history
 .node_repl_history
@@ -110,3 +115,22 @@ pids
 
 # Local Netlify folder
 .netlify
+
+# Quasar specific
+.quasar/temp/
+
+# Capacitor specific
+/ios/.DS_Store
+/ios/App/Podfile.lock
+
+# Android specific
+/android/.gradle/
+/android/local.properties
+/android/gradlew
+/android/gradlew.bat
+/android/app/build/
+/android/app/.cxx/
+/android/build/
+
+# Build outputs
+/dist-*
