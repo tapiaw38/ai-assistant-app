@@ -14,6 +14,7 @@ export interface EnvironmentConfig {
   NODE_ENV: string;
   DEV: boolean;
   PROD: boolean;
+  DEBUG_MODE: boolean;
 }
 
 // Environment variables with type safety
@@ -30,6 +31,7 @@ export const ENV: EnvironmentConfig = {
   NODE_ENV: import.meta.env.MODE || 'development',
   DEV: import.meta.env.DEV || false,
   PROD: import.meta.env.PROD || false,
+  DEBUG_MODE: import.meta.env.VITE_DEBUG_MODE === 'true' || false,
 };
 
 // Validation function

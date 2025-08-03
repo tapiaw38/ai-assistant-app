@@ -186,6 +186,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from 'src/composables/useAuth';
+import { useBackButton } from 'src/composables/useBackButton';
 import { ENV } from 'src/config/environment';
 import { useQuasar } from 'quasar';
 
@@ -193,6 +194,9 @@ import { useQuasar } from 'quasar';
 const auth = useAuth();
 const router = useRouter();
 const $q = useQuasar();
+
+// Setup back button handler
+useBackButton();
 
 // Reactive data
 const newApiKey = ref('');

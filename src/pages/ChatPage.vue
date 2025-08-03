@@ -193,6 +193,7 @@ import { ref, onMounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useChatStore } from 'src/stores/chat-store';
 import { useAuth } from 'src/composables/useAuth';
+import { useBackButton } from 'src/composables/useBackButton';
 import { ENV } from 'src/config/environment';
 import VoiceRecorderButton from 'src/components/VoiceRecorderButton.vue';
 import LoginForm from 'src/components/LoginForm.vue';
@@ -202,6 +203,9 @@ import nymiaLogo from 'src/assets/nymia-app.png';
 const chatStore = useChatStore();
 const auth = useAuth();
 const router = useRouter();
+
+// Setup back button handler
+useBackButton();
 
 // Reactive data
 const messageText = ref('');
