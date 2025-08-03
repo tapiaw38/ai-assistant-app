@@ -1,19 +1,16 @@
 <template>
   <q-page class="chat-page">
-    <!-- Login Form (shown when not authenticated) -->
-    <LoginForm v-if="!auth.isAuthenticated.value" />
-
     <!-- Chat Interface (shown when authenticated) -->
-    <div v-else>
+    <div v-if="auth.isAuthenticated.value">
       <!-- Header -->
       <q-header elevated class="bg-primary text-white">
         <q-toolbar>
-          <q-toolbar-title class="text-center">
-            <div class="flex items-center justify-center">
-              <img :src="nymiaLogo" alt="Nymia Logo" class="nymia-logo q-mr-sm" />
-              <span class="app-title">Nymia Assistant</span>
+          <q-toolbar-title class="text-left">
+            <div class="flex items-center">
+              <span class="text-h6 font-weight-medium">Nymia Assistant</span>
             </div>
           </q-toolbar-title>
+          <q-space />
           <q-btn
             flat
             round
@@ -179,6 +176,18 @@
                   <q-item-label caption>Clear current messages only</q-item-label>
                 </q-item-section>
               </q-item>
+
+              <q-separator />
+
+              <q-item clickable v-close-popup @click="handleLogout">
+                <q-item-section avatar>
+                  <q-icon name="logout" color="negative" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-negative">Logout</q-item-label>
+                  <q-item-label caption>Sign out and clear API key</q-item-label>
+                </q-item-section>
+              </q-item>
             </q-list>
           </q-card-section>
         </q-card>
@@ -196,8 +205,6 @@ import { useAuth } from 'src/composables/useAuth';
 import { useBackButton } from 'src/composables/useBackButton';
 import { ENV } from 'src/config/environment';
 import VoiceRecorderButton from 'src/components/VoiceRecorderButton.vue';
-import LoginForm from 'src/components/LoginForm.vue';
-import nymiaLogo from 'src/assets/nymia-app.png';
 
 // Composables
 const chatStore = useChatStore();
@@ -276,6 +283,14 @@ const formatTime = (timestamp: Date): string => {
   return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const handleLogout = () => {
+  auth.logout();
+  chatStore.resetStore();
+  showMenu.value = false;
+  // Redirect to login page
+  void router.push('/login');
+};
+
 // Watchers
 watch(
   () => chatStore.messages,
@@ -290,6 +305,12 @@ onMounted(async () => {
   // Initialize authentication
   auth.initializeAuth();
 
+  // If not authenticated, redirect to login
+  if (!auth.isAuthenticated.value) {
+    void router.push('/login');
+    return;
+  }
+
   // Initialize chat if authenticated
   if (auth.isAuthenticated.value && auth.apiKey.value) {
     await chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
@@ -302,6 +323,9 @@ watch(
   (isAuthenticated) => {
     if (isAuthenticated && auth.apiKey.value) {
       void chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
+    } else {
+      // User logged out - redirect to login
+      void router.push('/login');
     }
   },
 );

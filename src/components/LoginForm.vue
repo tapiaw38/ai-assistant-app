@@ -5,7 +5,6 @@
       <div class="logo-section">
         <img :src="nymiaLogo" alt="Nymia Logo" class="login-logo" />
         <h1 class="app-title">Nymia Assistant</h1>
-        <p class="app-subtitle">Your intelligent conversation partner</p>
       </div>
 
       <!-- Login Form -->
@@ -21,7 +20,7 @@
             placeholder="Enter your API key..."
             outlined
             dense
-            type="password"
+            :type="showApiKey ? 'text' : 'password'"
             class="api-key-input"
             :error="!!auth.error.value"
             :error-message="auth.error.value || undefined"
@@ -75,7 +74,8 @@
           <div class="help-section">
             <q-icon name="info" class="help-icon" />
             <p class="help-text">
-              Don't have an API key? Contact your administrator or visit our documentation.
+              Don't have an API key? Contact your administrator or visit our documentation
+              www.nymia.com.ar
             </p>
           </div>
         </div>
@@ -86,12 +86,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuth } from 'src/composables/useAuth';
 import nymiaLogo from 'src/assets/nymia-app.png';
 import { ENV } from 'src/config/environment';
 
 // Composables
 const auth = useAuth();
+const router = useRouter();
 
 // Reactive data
 const apiKeyInput = ref('');
@@ -107,7 +109,14 @@ const toggleApiKeyVisibility = () => {
 
 const handleLogin = async () => {
   const success = await auth.login(apiKeyInput.value.trim(), serverUrl.value.trim());
-  if (!success) {
+  if (success) {
+    // Login successful - redirect to chat
+    console.log('Login successful');
+    // Clear the form
+    apiKeyInput.value = '';
+    // Redirect to chat page
+    void router.push('/');
+  } else {
     // Error is handled by the auth composable
     console.log('Login failed');
   }
@@ -132,12 +141,12 @@ watch([apiKeyInput, serverUrl], clearErrorOnInput);
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  padding: 10px;
+  margin: 0;
 }
 
 .login-card {
   background: white;
-  border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   width: 100%;
@@ -164,11 +173,8 @@ watch([apiKeyInput, serverUrl], clearErrorOnInput);
 }
 
 .login-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  width: 200px;
+  height: auto;
 }
 
 .app-title {
@@ -247,7 +253,7 @@ watch([apiKeyInput, serverUrl], clearErrorOnInput);
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .login-container {
-    padding: 10px;
+    padding: 5px;
   }
 
   .login-card {
@@ -259,8 +265,8 @@ watch([apiKeyInput, serverUrl], clearErrorOnInput);
   }
 
   .login-logo {
-    width: 60px;
-    height: 60px;
+    width: 160px;
+    height: auto;
   }
 
   .app-title {

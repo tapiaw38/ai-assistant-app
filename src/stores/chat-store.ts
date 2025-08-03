@@ -168,6 +168,18 @@ export const useChatStore = defineStore('chat', () => {
     conversationId.value = null;
   };
 
+  const resetStore = () => {
+    messages.value = [];
+    conversationId.value = null;
+    isLoading.value = false;
+    isSending.value = false;
+    error.value = null;
+    showImages.value = false;
+    audioAnswers.value = false;
+    isPlayingAudio.value = false;
+    apiKey.value = '';
+  };
+
   const toggleShowImages = () => {
     showImages.value = !showImages.value;
   };
@@ -480,6 +492,7 @@ export const useChatStore = defineStore('chat', () => {
     initializeChat,
     sendMessage,
     clearMessages,
+    resetStore,
     toggleShowImages,
     toggleAudioAnswers,
     startNewConversation,

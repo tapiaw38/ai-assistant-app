@@ -186,12 +186,14 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from 'src/composables/useAuth';
+import { useChatStore } from 'src/stores/chat-store';
 import { useBackButton } from 'src/composables/useBackButton';
 import { ENV } from 'src/config/environment';
 import { useQuasar } from 'quasar';
 
 // Composables
 const auth = useAuth();
+const chatStore = useChatStore();
 const router = useRouter();
 const $q = useQuasar();
 
@@ -246,12 +248,14 @@ const confirmLogout = () => {
 
 const handleLogout = () => {
   auth.logout();
+  chatStore.resetStore();
   $q.notify({
     type: 'info',
     message: 'Logged out successfully',
     position: 'top',
   });
-  void router.push('/');
+  // Navigate to login page
+  void router.push('/login');
 };
 </script>
 

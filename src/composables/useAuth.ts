@@ -132,6 +132,7 @@ export function useAuth() {
     apiKey.value = null;
     localStorage.removeItem(STORAGE_KEY);
     error.value = null;
+    debugLog('User logged out - API key cleared');
   };
 
   // Update API Key
