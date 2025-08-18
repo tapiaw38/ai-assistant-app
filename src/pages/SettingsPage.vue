@@ -79,9 +79,35 @@
             </q-input>
 
             <!-- Server URL Input -->
+            <!-- Current Server URL Status -->
+            <div class="current-key-status">
+              <q-icon name="cloud" color="positive" />
+              <span class="status-text">Connected to server</span>
+              <q-btn
+                flat
+                dense
+                round
+                icon="visibility"
+                @click="showCurrentUrl = !showCurrentUrl"
+                class="q-ml-sm"
+              />
+            </div>
+
+            <div v-if="showCurrentUrl" class="current-key-display">
+              <q-input
+                :model-value="serverUrl"
+                label="Current Server URL"
+                readonly
+                outlined
+                dense
+                class="q-mb-md"
+              />
+            </div>
+
+            <!-- New Server URL Input -->
             <q-input
-              v-model="serverUrl"
-              label="Server URL"
+              v-model="newServerUrl"
+              label="New Server URL"
               placeholder="https://assistant.nymia.com.ar"
               outlined
               dense
@@ -98,10 +124,10 @@
               color="primary"
               class="update-btn"
               :loading="isUpdating"
-              :disable="!newApiKey.trim() || isUpdating"
+              :disable="(!newApiKey.trim() && !newServerUrl.trim()) || isUpdating"
             >
               <q-icon name="update" class="q-mr-sm" />
-              Update API Key
+              Update Settings
             </q-btn>
           </q-form>
         </q-card-section>
@@ -199,9 +225,11 @@ const $q = useQuasar();
 useBackButton();
 
 const newApiKey = ref('');
+const newServerUrl = ref('');
 const serverUrl = ref(ENV.API_BASE_URL || 'https://assistant.nymia.com.ar');
 const showCurrentKey = ref(false);
 const showNewKey = ref(false);
+const showCurrentUrl = ref(false);
 const isUpdating = ref(false);
 const error = ref<string | null>(null);
 const showLogoutDialog = ref(false);
@@ -217,21 +245,31 @@ const updateApiKey = async () => {
     isUpdating.value = true;
     error.value = null;
 
-    const success = await auth.updateApiKey(newApiKey.value.trim(), serverUrl.value.trim());
+    const apiKeyToUpdate = newApiKey.value.trim();
+    const serverUrlToUpdate = newServerUrl.value.trim() || serverUrl.value;
+
+    const success = await auth.updateApiKey(apiKeyToUpdate, serverUrlToUpdate);
 
     if (success) {
       $q.notify({
         type: 'positive',
-        message: 'API key updated successfully!',
+        message:
+          apiKeyToUpdate && serverUrlToUpdate !== serverUrl.value
+            ? 'API key and Server URL updated successfully!'
+            : apiKeyToUpdate
+              ? 'API key updated successfully!'
+              : 'Server URL updated successfully!',
         position: 'top',
       });
       newApiKey.value = '';
+      newServerUrl.value = '';
+      serverUrl.value = serverUrlToUpdate;
     } else {
-      error.value = auth.error.value || 'Failed to update API key';
+      error.value = auth.error.value || 'Failed to update settings';
     }
   } catch (err) {
-    error.value = 'An error occurred while updating the API key';
-    console.error('Update API key error:', err);
+    error.value = 'An error occurred while updating settings';
+    console.error('Update settings error:', err);
   } finally {
     isUpdating.value = false;
   }

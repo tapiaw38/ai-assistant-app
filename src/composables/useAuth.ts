@@ -3,12 +3,16 @@ import { ENV } from 'src/config/environment';
 
 export interface AuthState {
   apiKey: string | null;
+  serverUrl: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
 }
 
-const STORAGE_KEY = 'nymia-api-key';
+const STORAGE_KEYS = {
+  API_KEY: 'nymia-api-key',
+  SERVER_URL: 'nymia-server-url',
+};
 
 const debugLog = (message: string, ...args: unknown[]) => {
   if (ENV.DEBUG_MODE) {
@@ -18,6 +22,7 @@ const debugLog = (message: string, ...args: unknown[]) => {
 
 export function useAuth() {
   const apiKey = ref<string | null>(null);
+  const serverUrl = ref<string | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
@@ -25,12 +30,19 @@ export function useAuth() {
 
   const initializeAuth = () => {
     try {
-      const storedKey = localStorage.getItem(STORAGE_KEY);
+      const storedKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
+      const storedUrl = localStorage.getItem(STORAGE_KEYS.SERVER_URL);
+
       if (storedKey) {
         apiKey.value = storedKey;
       }
+      if (storedUrl) {
+        serverUrl.value = storedUrl;
+      } else {
+        serverUrl.value = ENV.API_BASE_URL;
+      }
     } catch (err) {
-      console.error('Error loading API key from storage:', err);
+      console.error('Error loading authentication data from storage:', err);
     }
   };
 
@@ -91,7 +103,9 @@ export function useAuth() {
       }
 
       apiKey.value = key;
-      localStorage.setItem(STORAGE_KEY, key);
+      serverUrl.value = baseUrl;
+      localStorage.setItem(STORAGE_KEYS.API_KEY, key);
+      localStorage.setItem(STORAGE_KEYS.SERVER_URL, baseUrl);
 
       return true;
     } catch (err) {
@@ -105,9 +119,11 @@ export function useAuth() {
 
   const logout = () => {
     apiKey.value = null;
-    localStorage.removeItem(STORAGE_KEY);
+    serverUrl.value = null;
+    localStorage.removeItem(STORAGE_KEYS.API_KEY);
+    localStorage.removeItem(STORAGE_KEYS.SERVER_URL);
     error.value = null;
-    debugLog('User logged out - API key cleared');
+    debugLog('User logged out - credentials cleared');
   };
 
   const updateApiKey = async (newKey: string, baseUrl: string): Promise<boolean> => {
@@ -122,15 +138,16 @@ export function useAuth() {
   return {
     // State
     apiKey: computed(() => apiKey.value),
+    serverUrl: computed(() => serverUrl.value),
     isAuthenticated,
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
 
-    // Actions
-    initializeAuth,
+    // Methods
     login,
     logout,
     updateApiKey,
+    initializeAuth,
     clearError,
   };
 }

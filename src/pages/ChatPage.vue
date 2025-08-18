@@ -245,6 +245,12 @@ const clearChat = () => {
 
 const startNewConversation = async () => {
   await chatStore.startNewConversation();
+  chatStore.messages.push({
+    id: 'welcome-' + Date.now(),
+    sender: 'assistant',
+    content: '¡Hola! ¿En qué puedo ayudarte hoy?',
+    timestamp: new Date(),
+  });
   showMenu.value = false;
   await scrollToBottom();
 };
@@ -265,7 +271,7 @@ const scrollToBottom = async () => {
     if (messagesContainer.value) {
       messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
     }
-  }, 1000);
+  }, 100);
 };
 
 const formatMessage = (content: string): string => {
@@ -304,7 +310,16 @@ onMounted(async () => {
   }
 
   if (auth.isAuthenticated.value && auth.apiKey.value) {
-    await chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
+    const serverUrl = auth.serverUrl.value || ENV.API_BASE_URL;
+    await chatStore.initializeChat(auth.apiKey.value, serverUrl);
+    if (chatStore.messages.length === 0) {
+      chatStore.messages.push({
+        id: 'welcome' + Date.now(),
+        sender: 'assistant',
+        content: '¡Hola! ¿En qué puedo ayudarte hoy?',
+        timestamp: new Date(),
+      });
+    }
     await scrollToBottom();
   }
 });
@@ -313,7 +328,8 @@ watch(
   () => auth.isAuthenticated.value,
   async (isAuthenticated) => {
     if (isAuthenticated && auth.apiKey.value) {
-      await chatStore.initializeChat(auth.apiKey.value, ENV.API_BASE_URL);
+      const currentServerUrl = auth.serverUrl.value || ENV.API_BASE_URL;
+      await chatStore.initializeChat(auth.apiKey.value, currentServerUrl);
       await scrollToBottom();
     } else {
       void router.push('/login');
