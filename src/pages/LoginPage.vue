@@ -38,7 +38,7 @@ watch(
 .login-page {
   padding: 0 !important;
   margin: 0 !important;
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
 }
 </style>

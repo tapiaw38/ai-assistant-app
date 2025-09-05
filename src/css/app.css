@@ -1,1 +1,12 @@
 /* app global css */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100dvh; /* alto dinámico del viewport */
+}
+
+.app {
+  min-height: 100dvh; /* asegura ocupar todo */
+  padding-bottom: env(safe-area-inset-bottom, 0); /* respeta la zona segura inferior */
+}
